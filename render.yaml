@@ -1,0 +1,12 @@
+# Exported from Render on 2025-08-22T12:11:47Z
+services:
+- type: web
+  name: YOLO11
+  runtime: python
+  repo: https://github.com/Sanjay2198/YOLO11
+  plan: free
+  region: oregon
+  buildCommand: pip install -r requirements.txt
+  startCommand: python app.py
+  autoDeployTrigger: commit
+version: "1"
