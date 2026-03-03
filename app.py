@@ -35,10 +35,14 @@ def yolo_inference(input_type, image, model_id, conf_threshold, iou_threshold, m
             show_conf=True,
         )
 
-        for r in results:
-            image_array = r.plot()
+        # Initialize annotated_image with the first result
+        if len(results) > 0:
+            image_array = results[0].plot()
             annotated_image = Image.fromarray(image_array[..., ::-1])
-        return annotated_image
+            return annotated_image
+        else:
+            # Return the original image if no detections
+            return image
     else:
         return None
 
