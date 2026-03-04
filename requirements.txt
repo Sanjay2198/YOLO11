@@ -1,4 +1,5 @@
 spaces
+gradio
 torch
 torchvision
 ultralytics

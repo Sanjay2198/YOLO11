@@ -1,7 +1,27 @@
 import spaces
 import gradio as gr
+from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from ultralytics import YOLO
+
+APP_DIR = Path(__file__).resolve().parent
+
+EXAMPLE_CONFIGS = [
+    ("zidane.jpg", "yolo11s.pt", 0.25, 0.45, 300),
+    ("bus.jpg", "yolo11m.pt", 0.25, 0.45, 300),
+    ("yolo_vision.jpg", "yolo11x.pt", 0.25, 0.45, 300),
+    ("Tricycle.jpg", "yolo11x-cls.pt", 0.25, 0.45, 300),
+    ("tcganadolu.jpg", "yolo11m-obb.pt", 0.25, 0.45, 300),
+    ("San Diego Airport.jpg", "yolo11x-seg.pt", 0.25, 0.45, 300),
+    ("Theodore_Roosevelt.png", "yolo11l-pose.pt", 0.25, 0.45, 300),
+    ("bike and car.jpg", "yolo11s.pt", 0.25, 0.45, 300),
+]
+
+EXAMPLES = [
+    [str(APP_DIR / image_name), model, conf, iou, max_detection]
+    for image_name, model, conf, iou, max_detection in EXAMPLE_CONFIGS
+    if (APP_DIR / image_name).exists()
+]
 
 @spaces.GPU
 def yolo_inference(input_type, image, model_id, conf_threshold, iou_threshold, max_detection):
@@ -85,7 +105,7 @@ with gr.Blocks() as app:
             max_detection = gr.Slider(minimum=1, maximum=300, step=1, value=300, label="Max Detections")
             infer_button = gr.Button("Run Detection")
         with gr.Column():
-            output_image = gr.Image(type="pil", label="Output", show_share_button=False)
+            output_image = gr.Image(type="pil", label="Output")
 
     # Main inference
     infer_button.click(
@@ -95,22 +115,16 @@ with gr.Blocks() as app:
     )
 
     # Examples
-    gr.Examples(
-        examples=[
-            ["zidane.jpg", "yolo11s.pt", 0.25, 0.45, 300],
-            ["bus.jpg", "yolo11m.pt", 0.25, 0.45, 300],
-            ["yolo_vision.jpg", "yolo11x.pt", 0.25, 0.45, 300],
-            ["Tricycle.jpg", "yolo11x-cls.pt", 0.25, 0.45, 300],
-            ["tcganadolu.jpg", "yolo11m-obb.pt", 0.25, 0.45, 300],
-            ["San Diego Airport.jpg", "yolo11x-seg.pt", 0.25, 0.45, 300],
-            ["Theodore_Roosevelt.png", "yolo11l-pose.pt", 0.25, 0.45, 300],
-            ["bike and car.jpg", "yolo11s.pt", 0.25, 0.45, 300],
-        ],
-        fn=yolo_inference_for_examples,
-        inputs=[image, model_id, conf_threshold, iou_threshold, max_detection],
-        outputs=[output_image],
-        label="Examples",
-    )
+    if EXAMPLES:
+        gr.Examples(
+            examples=EXAMPLES,
+            fn=yolo_inference_for_examples,
+            inputs=[image, model_id, conf_threshold, iou_threshold, max_detection],
+            outputs=[output_image],
+            label="Examples",
+        )
+    else:
+        gr.Markdown("No local example images found in the app directory.")
 
 if __name__ == '__main__':
-    app.launch(mcp_server=True)
+    app.launch(allowed_paths=[str(APP_DIR)])
